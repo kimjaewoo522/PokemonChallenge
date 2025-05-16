@@ -15,33 +15,43 @@ class MainViewCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setup()
+        setupUI()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setup() {
+    private func setupUI() {
         contentView.addSubview(imageView)
+        styleUI()
+        setupConstraints()
+    }
+    
+    private func styleUI() {
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
-        
-        imageView.snp.makeConstraints {
-                $0.edges.equalToSuperview()
-            }
         
         contentView.backgroundColor = .cellBackground
         contentView.layer.cornerRadius = 8
         contentView.clipsToBounds = true
     }
+    
+    private func setupConstraints() {
+        imageView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+    }
         
     func configure(with item: MainViewModel.PokemonItem) {
         imageView.image = nil
-
-        guard let urlString = item.imageURL,
+        loadImage(from: item.imageURL, fallbackName: item.name)
+    }
+    
+    private func loadImage(from urlString: String?, fallbackName: String) {
+        guard let urlString = urlString,
               let url = URL(string: urlString) else {
-            print("이미지 URL 없음: \(item.name)")
+            print("이미지 URL 없음: \(fallbackName)")
             return
         }
 
@@ -50,7 +60,7 @@ class MainViewCell: UICollectionViewCell {
                   let data = data,
                   let image = UIImage(data: data),
                   error == nil else {
-                print("이미지 로딩 실패: \(item.name)")
+                print("이미지 로딩 실패: \(fallbackName)")
                 return
             }
 
@@ -59,5 +69,4 @@ class MainViewCell: UICollectionViewCell {
             }
         }.resume()
     }
-    
 }

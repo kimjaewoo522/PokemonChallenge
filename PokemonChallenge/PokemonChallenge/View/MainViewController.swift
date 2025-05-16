@@ -98,8 +98,26 @@ final class MainViewController: UIViewController {
     
     // MARK: - Binding
     private func bind() {
-        // DataSource configuration
-        let dataSource = RxCollectionViewSectionedReloadDataSource<Section>(
+        let dataSource = makeDataSource()
+        
+        viewModel.pokemonList
+            .map { [Section(model: "Pokemon", items: $0)] }
+            .bind(to: collectionView.rx.items(dataSource: dataSource))
+            .disposed(by: disposeBag)
+
+        collectionView.rx.modelSelected(MainViewModel.PokemonItem.self)
+            .subscribe(onNext: { [weak self] item in
+                guard let self = self else { return }
+                let detailVC = DetailViewController(pokemonID: item.id)
+                self.navigationController?.pushViewController(detailVC, animated: true)
+            })
+            .disposed(by: disposeBag)
+
+        observeScrollForPagination()
+    }
+    
+    private func makeDataSource() -> RxCollectionViewSectionedReloadDataSource<Section> {
+        return RxCollectionViewSectionedReloadDataSource<Section>(
             configureCell: { _, collectionView, indexPath, item in
                 guard let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: MainViewCell.id, for: indexPath
@@ -121,25 +139,12 @@ final class MainViewController: UIViewController {
                 return header
             }
         )
-        
-        // Bind pokemon list to collectionView
-        viewModel.pokemonList
-            .map { [Section(model: "Pokemon", items: $0)] }
-            .bind(to: collectionView.rx.items(dataSource: dataSource))
-            .disposed(by: disposeBag)
-        
-        // Handle cell selection
-        collectionView.rx.modelSelected(MainViewModel.PokemonItem.self)
-            .subscribe(onNext: { [weak self] item in
-                guard let self = self else { return }
-                let detailVC = DetailViewController(pokemonID: item.id)
-                self.navigationController?.pushViewController(detailVC, animated: true)
-            })
-            .disposed(by: disposeBag)
-        
+    }
+    
+    private func observeScrollForPagination() {
         collectionView.rx.contentOffset
             .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] offset in
+            .subscribe(onNext: { [weak self] _ in
                 guard let self = self else { return }
                 let threshold = collectionView.contentSize.height - collectionView.frame.size.height - 100
                 if collectionView.contentOffset.y > threshold {

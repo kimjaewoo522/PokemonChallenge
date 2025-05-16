@@ -19,41 +19,27 @@ final class MainViewModel {
     private let limit = 20
 
     init() {
-        fetchPokemonList(limit: limit, offset: offset)
+        loadPokemonList(offset: offset)
     }
 
     func fetchMorePokemon() {
         guard !isLoading else { return }
         offset += limit
-        fetchPokemonList(limit: limit, offset: offset)
+        loadPokemonList(offset: offset)
     }
 
-    private func fetchPokemonList(limit: Int, offset: Int) {
+    private func loadPokemonList(offset: Int) {
         isLoading = true
 
-        let urlString = "https://pokeapi.co/api/v2/pokemon?limit=\(limit)&offset=\(offset)"
-        guard let url = URL(string: urlString) else {
+        guard let url = URL(string: "https://pokeapi.co/api/v2/pokemon?limit=\(limit)&offset=\(offset)") else {
             print("❌ 잘못된 URL")
             isLoading = false
             return
         }
 
         NetworkManager.shared.fetch(url: url)
-            .flatMap { (main: Main) -> Single<[PokemonItem]> in
-                let items = main.results.map { result -> Single<PokemonItem> in
-                    guard let id = result.url.split(separator: "/").last else {
-                        return .just(PokemonItem(id: "0", name: result.name, imageURL: nil))
-                    }
-
-                    let detailURL = URL(string: "https://pokeapi.co/api/v2/pokemon/\(id)")!
-                    return NetworkManager.shared.fetch(url: detailURL)
-                        .map { (detail: Detail) -> PokemonItem in
-                            let imageURL = detail.sprites.other.officialArtwork.frontDefault
-                            return PokemonItem(id: String(detail.id), name: detail.name, imageURL: imageURL)
-                        }
-                        .catchAndReturn(PokemonItem(id: String(id), name: result.name, imageURL: nil))
-                }
-                return Single.zip(items)
+            .flatMap { (main: Main) in
+                self.parsePokemonItems(from: main.results)
             }
             .subscribe(onSuccess: { [weak self] items in
                 guard let self = self else { return }
@@ -65,5 +51,25 @@ final class MainViewModel {
                 self?.isLoading = false
             })
             .disposed(by: disposeBag)
+    }
+
+    private func parsePokemonItems(from results: [Result]) -> Single<[PokemonItem]> {
+        let items = results.map { result -> Single<PokemonItem> in
+            guard let id = result.url.split(separator: "/").last else {
+                return .just(PokemonItem(id: "0", name: result.name, imageURL: nil))
+            }
+            let detailURL = self.makeDetailURL(for: String(id))
+            return NetworkManager.shared.fetch(url: detailURL)
+                .map { (detail: Detail) -> PokemonItem in
+                    let imageURL = detail.sprites.other.officialArtwork.frontDefault
+                    return PokemonItem(id: String(detail.id), name: detail.name, imageURL: imageURL)
+                }
+                .catchAndReturn(PokemonItem(id: String(id), name: result.name, imageURL: nil))
+        }
+        return Single.zip(items)
+    }
+
+    private func makeDetailURL(for id: String) -> URL {
+        return URL(string: "https://pokeapi.co/api/v2/pokemon/\(id)")!
     }
 }

@@ -17,7 +17,7 @@ final class DetailViewController: UIViewController {
     private let disposeBag = DisposeBag()
     
     private let imageView = UIImageView()
-    private let infoLabel = UILabel()
+    private let infoTextView = UITextView()
     
     // MARK: - Initializer
     init(pokemonID: String) {
@@ -49,13 +49,15 @@ final class DetailViewController: UIViewController {
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         
-        infoLabel.textColor = .white
-        infoLabel.numberOfLines = 0
-        infoLabel.textAlignment = .center
+        infoTextView.isEditable = false
+        infoTextView.isScrollEnabled = false
+        infoTextView.backgroundColor = .clear
+        infoTextView.textAlignment = .center
+        infoTextView.textColor = .white
         
         view.addSubview(containerView)
         containerView.addSubview(imageView)
-        containerView.addSubview(infoLabel)
+        containerView.addSubview(infoTextView)
         
         containerView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
@@ -70,7 +72,7 @@ final class DetailViewController: UIViewController {
             $0.width.height.equalTo(180)
         }
         
-        infoLabel.snp.makeConstraints {
+        infoTextView.snp.makeConstraints {
             $0.top.equalTo(imageView.snp.bottom).offset(16)
             $0.leading.trailing.bottom.equalToSuperview().inset(20)
         }
@@ -84,7 +86,7 @@ final class DetailViewController: UIViewController {
             .drive(onNext: { [weak self] detail in
                 guard let self = self else { return }
                 
-                let types = detail.types.compactMap { PokemonTypeName(rawValue: $0.type.name)?.displayName }.joined(separator: ", ")
+                let types = detail.types.map { $0.type.name }.joined(separator: ", ")
                 let titleText = "No.\(detail.id) \(detail.name.capitalized)\n"
                 let infoText = "\n타입: \(types)\n\n키: \(Double(detail.height) / 10)m\n\n몸무게: \(Double(detail.weight) / 10)kg"
 
@@ -104,7 +106,7 @@ final class DetailViewController: UIViewController {
                     ]
                 ))
 
-                self.infoLabel.attributedText = attributedText
+                self.infoTextView.attributedText = attributedText
             })
             .disposed(by: disposeBag)
 
