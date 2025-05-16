@@ -15,8 +15,7 @@ class MainViewModel {
     PublishRelay 초깃값을 가지지 않으며, 구독을 시작했어도 최근에 방출된 값을 받지 않는다, 구독이후로 흐른값만을 받아봄
      View에서 이 값을 구독하여 UI를 업데이트함
     */
-    let pokemonList = PublishRelay<[Result]>()
-    
+    let pokemonList = BehaviorRelay<[Result]>(value: [])
     private let disposeBag = DisposeBag()
     
     init() {
@@ -34,6 +33,7 @@ class MainViewModel {
             .subscribe(onSuccess: { [weak self] (response: Main) in
                 // 응답받은 포켓몬 리스트를 pokemonList Relay에 전달
                 self?.pokemonList.accept(response.results)
+                print("데이터 수: \(response.results.count)")
             }, onFailure: { error in
                 print("네트워크 오류")
             })

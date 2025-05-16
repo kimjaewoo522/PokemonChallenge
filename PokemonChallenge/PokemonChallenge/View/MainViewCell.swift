@@ -25,31 +25,40 @@ class MainViewCell: UICollectionViewCell {
     private func setup() {
         contentView.addSubview(imageView)
         imageView.contentMode = .scaleAspectFit
-        imageView.frame = contentView.bounds
-        contentView.backgroundColor = .white
+        imageView.clipsToBounds = true
+        
+        imageView.snp.makeConstraints {
+                $0.edges.equalToSuperview()
+            }
+        
+        contentView.backgroundColor = .cellBackground
         contentView.layer.cornerRadius = 8
         contentView.clipsToBounds = true
     }
         
     func configure(with result: Result) {
-            imageView.image = nil // 이전 셀 재사용 대비
+        imageView.image = nil
 
-            guard let id = result.url.split(separator: "/").last,
-                  let imageURL = URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/\(id).png") else {
-                return
-            }
+        guard let id = result.url.split(separator: "/").last,
+              let imageURL = URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/\(id).png") else {
+            print(" 이미지 URL 파싱 실패: \(result.url)")
+            return
+        }
 
-        // 이미지 로딩 작업을 백그라운드 스레드에서처리
+        print("다운로드 시도: \(imageURL)")
+
         DispatchQueue.global().async { [weak self] in
             guard let self = self,
-                  // 동기 방식으로 이미지 데이터를 요청
                   let data = try? Data(contentsOf: imageURL),
-                  let image = UIImage(data: data) else { return }
-            // 이미지 설정은 반드시 메인 스레드에서 실행되어야 하므로 다시 전환
+                  let image = UIImage(data: data) else {
+                print(" 이미지 로딩 실패 for \(result.name)")
+                return
+            }
             DispatchQueue.main.async {
+                print("이미지 렌더링 성공 for \(result.name)")
                 self.imageView.image = image
             }
         }
     }
-        
+    
 }
