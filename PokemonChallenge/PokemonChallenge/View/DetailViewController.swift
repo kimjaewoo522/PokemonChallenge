@@ -84,7 +84,7 @@ final class DetailViewController: UIViewController {
             .drive(onNext: { [weak self] detail in
                 guard let self = self else { return }
                 
-                let types = detail.types.map { $0.type.name }.joined(separator: ", ")
+                let types = detail.types.compactMap { PokemonTypeName(rawValue: $0.type.name)?.displayName }.joined(separator: ", ")
                 let titleText = "No.\(detail.id) \(detail.name.capitalized)\n"
                 let infoText = "\n타입: \(types)\n\n키: \(Double(detail.height) / 10)m\n\n몸무게: \(Double(detail.weight) / 10)kg"
 

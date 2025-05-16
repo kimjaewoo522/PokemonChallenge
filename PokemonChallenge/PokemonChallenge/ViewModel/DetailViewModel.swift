@@ -3,9 +3,18 @@ import RxSwift
 import RxCocoa
 import UIKit
 
+struct TranslatedDetail {
+    let id: Int
+    let name: String
+    let height: Double
+    let weight: Double
+    let types: [TypeElement]
+    let koreanTypes: [String]
+}
+
 final class DetailViewModel {
     
-    let pokemonDetail = BehaviorRelay<Detail?>(value: nil)
+    let pokemonDetail = BehaviorRelay<TranslatedDetail?>(value: nil)
     let pokemonImage = BehaviorRelay<UIImage?>(value: nil)
     
     private let disposeBag = DisposeBag()
@@ -21,7 +30,19 @@ final class DetailViewModel {
             .subscribe(onSuccess: { [weak self] (detail: Detail) in
                 guard let self = self else { return }
                 
-                self.pokemonDetail.accept(detail)
+                let translatedTypes = detail.types.compactMap { typeElement in
+                    PokemonTypeName(rawValue: typeElement.type.name)?.displayName
+                }
+                let translatedName = PokemonTranslator.getKoreanName(for: detail.name)
+                let translatedDetail = TranslatedDetail(
+                    id: detail.id,
+                    name: translatedName,
+                    height: detail.height,
+                    weight: detail.weight,
+                    types: detail.types,
+                    koreanTypes: translatedTypes
+                )
+                self.pokemonDetail.accept(translatedDetail)
                 
                 if let urlString = detail.sprites.other.officialArtwork.frontDefault,
                    let imageURL = URL(string: urlString) {
