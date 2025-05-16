@@ -54,8 +54,8 @@ final class DetailViewModel {
     }
 
     private func translateDetail(_ detail: Detail) -> TranslatedPokemonDetail {
-        let translatedTypes = detail.types.compactMap {
-            PokemonTypeName(rawValue: $0.type.name)?.displayName
+        let translatedTypes = detail.types.map { typeElement in
+            PokemonTypeName(rawValue: typeElement.type.name)?.displayName ?? typeElement.type.name
         }
         let translatedName = PokemonTranslator.getKoreanName(for: detail.name)
 
@@ -75,7 +75,7 @@ final class DetailViewModel {
             if let data = data, let image = UIImage(data: data) {
                 self.pokemonImage.accept(image)
             } else {
-                print("❌ 이미지 다운로드 실패: \(error?.localizedDescription ?? "알 수 없음")")
+                print("이미지 다운로드 실패: \(error?.localizedDescription ?? "알 수 없음")")
                 self.pokemonImage.accept(nil)
             }
         }.resume()

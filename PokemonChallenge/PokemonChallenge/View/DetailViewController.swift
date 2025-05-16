@@ -15,9 +15,58 @@ final class DetailViewController: UIViewController {
     // MARK: - Properties
     private let viewModel: DetailViewModel
     private let disposeBag = DisposeBag()
-    
+
     private let imageView = UIImageView()
     private let infoTextView = UITextView()
+
+    private let noLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 30, weight: .bold)
+        return label
+    }()
+
+    private let nameLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 30, weight: .bold)
+        return label
+    }()
+
+    private let typeLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 20, weight: .semibold)
+        return label
+    }()
+
+    private let heightLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 20, weight: .semibold)
+        return label
+    }()
+
+    private let weightLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 20, weight: .semibold)
+        return label
+    }()
+
+    private lazy var labelStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [
+            noLabel,
+            nameLabel,
+            typeLabel,
+            heightLabel,
+            weightLabel
+        ])
+        stackView.spacing = 8
+        stackView.alignment = .center
+        stackView.axis = .vertical
+        return stackView
+    }()
     
     // MARK: - Initializer
     init(pokemonID: String) {
@@ -49,15 +98,9 @@ final class DetailViewController: UIViewController {
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         
-        infoTextView.isEditable = false
-        infoTextView.isScrollEnabled = false
-        infoTextView.backgroundColor = .clear
-        infoTextView.textAlignment = .center
-        infoTextView.textColor = .white
-        
         view.addSubview(containerView)
         containerView.addSubview(imageView)
-        containerView.addSubview(infoTextView)
+        containerView.addSubview(labelStackView)
         
         containerView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
@@ -72,8 +115,8 @@ final class DetailViewController: UIViewController {
             $0.width.height.equalTo(180)
         }
         
-        infoTextView.snp.makeConstraints {
-            $0.top.equalTo(imageView.snp.bottom).offset(16)
+        labelStackView.snp.makeConstraints {
+            $0.top.equalTo(imageView.snp.bottom).offset(10)
             $0.leading.trailing.bottom.equalToSuperview().inset(20)
         }
     }
@@ -85,28 +128,12 @@ final class DetailViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(onNext: { [weak self] detail in
                 guard let self = self else { return }
-                
-                let types = detail.types.map { $0.type.name }.joined(separator: ", ")
-                let titleText = "No.\(detail.id) \(detail.name.capitalized)\n"
-                let infoText = "\n타입: \(types)\n\n키: \(Double(detail.height) / 10)m\n\n몸무게: \(Double(detail.weight) / 10)kg"
 
-                let attributedText = NSMutableAttributedString(
-                    string: titleText,
-                    attributes: [
-                        .font: UIFont.boldSystemFont(ofSize: 35),
-                        .foregroundColor: UIColor.white
-                    ]
-                )
-
-                attributedText.append(NSAttributedString(
-                    string: infoText,
-                    attributes: [
-                        .font: UIFont.boldSystemFont(ofSize: 20),
-                        .foregroundColor: UIColor.white
-                    ]
-                ))
-
-                self.infoTextView.attributedText = attributedText
+                self.noLabel.text = "No.\(detail.id) \(detail.name.capitalized)"
+                self.nameLabel.text = ""
+                self.typeLabel.text = "타입: \(detail.koreanTypes.joined(separator: ", "))"
+                self.heightLabel.text = "키: \(Double(detail.height) / 10)m"
+                self.weightLabel.text = "몸무게: \(Double(detail.weight) / 10)kg"
             })
             .disposed(by: disposeBag)
 
