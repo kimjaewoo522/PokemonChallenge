@@ -7,24 +7,20 @@
 
 import Foundation
 
-// MARK: - Welcome
+// MARK: - Detail
 struct Detail: Codable {
-    let height: Int
     let id: Int
     let name: String
-    let species: Species
-    let types: [TypeElement]
+    let height: Int
     let weight: Int
-}
-
-// MARK: - Species
-struct Species: Codable {
-    let name: String
-    let url: String
+    let types: [TypeElement]
 }
 
 // MARK: - TypeElement
 struct TypeElement: Codable {
-    let slot: Int
     let type: Species
+}
+
+struct Species: Codable {
+    let name: String
 }

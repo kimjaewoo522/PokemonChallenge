@@ -9,8 +9,6 @@ import Foundation
 
 // MARK: - Main
 struct Main: Codable {
-    let count: Int
-    let next: String
     let results: [Result]
 }
 
