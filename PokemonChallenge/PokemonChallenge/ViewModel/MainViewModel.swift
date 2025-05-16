@@ -8,36 +8,51 @@
 import Foundation
 import RxSwift
 import RxCocoa
+import UIKit
 
-class MainViewModel {
+final class MainViewModel {
     
-    /*
-    PublishRelay 초깃값을 가지지 않으며, 구독을 시작했어도 최근에 방출된 값을 받지 않는다, 구독이후로 흐른값만을 받아봄
-     View에서 이 값을 구독하여 UI를 업데이트함
-    */
-    let pokemonList = BehaviorRelay<[Result]>(value: [])
+    struct PokemonItem {
+        let id: String
+        let name: String
+        let imageURL: String?
+    }
+    
+    let pokemonList = PublishRelay<[PokemonItem]>()
     private let disposeBag = DisposeBag()
     
     init() {
         fetchPokemonList(limit: 20, offset: 0)
     }
     
-    func fetchPokemonList(limit: Int, offset: Int) {
+    private func fetchPokemonList(limit: Int, offset: Int) {
         let urlString = "https://pokeapi.co/api/v2/pokemon?limit=\(limit)&offset=\(offset)"
         guard let url = URL(string: urlString) else {
-            print("잘못된 URL")
+            print("❌ 잘못된 URL")
             return
         }
         
         NetworkManager.shared.fetch(url: url)
-            .subscribe(onSuccess: { [weak self] (response: Main) in
-                // 응답받은 포켓몬 리스트를 pokemonList Relay에 전달
-                self?.pokemonList.accept(response.results)
-                print("데이터 수: \(response.results.count)")
+            .flatMap { (main: Main) -> Single<[PokemonItem]> in
+                let items = main.results.map { result -> Single<PokemonItem> in
+                    guard let id = result.url.split(separator: "/").last else {
+                        return .just(PokemonItem(id: "0", name: result.name, imageURL: nil))
+                    }
+                    
+                    let detailURL = URL(string: "https://pokeapi.co/api/v2/pokemon/\(id)")!
+                    return NetworkManager.shared.fetch(url: detailURL)
+                        .map { (detail: Detail) -> PokemonItem in
+                            let imageURL = detail.sprites.other.officialArtwork.frontDefault
+                            return PokemonItem(id: String(detail.id), name: detail.name, imageURL: imageURL)
+                        }
+                    .catchAndReturn(PokemonItem(id: String(id), name: result.name, imageURL: nil))                }
+                return Single.zip(items)
+            }
+            .subscribe(onSuccess: { [weak self] items in
+                self?.pokemonList.accept(items)
             }, onFailure: { error in
-                print("네트워크 오류")
+                print("❌ 포켓몬 리스트 로딩 실패: \(error)")
             })
             .disposed(by: disposeBag)
     }
-    
 }

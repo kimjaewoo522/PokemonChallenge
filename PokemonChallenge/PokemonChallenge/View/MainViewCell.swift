@@ -36,29 +36,28 @@ class MainViewCell: UICollectionViewCell {
         contentView.clipsToBounds = true
     }
         
-    func configure(with result: Result) {
+    func configure(with item: MainViewModel.PokemonItem) {
         imageView.image = nil
 
-        guard let id = result.url.split(separator: "/").last,
-              let imageURL = URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/\(id).png") else {
-            print(" 이미지 URL 파싱 실패: \(result.url)")
+        guard let urlString = item.imageURL,
+              let url = URL(string: urlString) else {
+            print("이미지 URL 없음: \(item.name)")
             return
         }
 
-        print("다운로드 시도: \(imageURL)")
-
-        DispatchQueue.global().async { [weak self] in
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
             guard let self = self,
-                  let data = try? Data(contentsOf: imageURL),
-                  let image = UIImage(data: data) else {
-                print(" 이미지 로딩 실패 for \(result.name)")
+                  let data = data,
+                  let image = UIImage(data: data),
+                  error == nil else {
+                print("이미지 로딩 실패: \(item.name)")
                 return
             }
+
             DispatchQueue.main.async {
-                print("이미지 렌더링 성공 for \(result.name)")
                 self.imageView.image = image
             }
-        }
+        }.resume()
     }
     
 }

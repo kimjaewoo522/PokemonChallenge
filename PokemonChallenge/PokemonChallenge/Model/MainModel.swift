@@ -8,12 +8,13 @@
 import Foundation
 
 // MARK: - Main
-struct Main: Codable {
+struct Main: Decodable {
     let results: [Result]
 }
 
 // MARK: - Result
-struct Result: Codable {
+struct Result: Decodable {
     let name: String
     let url: String
 }
+

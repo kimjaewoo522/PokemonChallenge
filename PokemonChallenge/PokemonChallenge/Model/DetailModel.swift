@@ -8,19 +8,44 @@
 import Foundation
 
 // MARK: - Detail
-struct Detail: Codable {
+struct Detail: Decodable {
     let id: Int
     let name: String
     let height: Double
     let weight: Double
     let types: [TypeElement]
+    let sprites: Sprites
 }
 
+struct Sprites: Decodable {
+    let other: OtherSprites
+}
+
+struct OtherSprites: Decodable {
+    let officialArtwork: OfficialArtwork
+
+    enum CodingKeys: String, CodingKey {
+        case officialArtwork = "official-artwork"
+    }
+}
+
+struct OfficialArtwork: Decodable {
+    let frontDefault: String?
+
+    enum CodingKeys: String, CodingKey {
+        case frontDefault = "front_default"
+    }
+}
+
+
 // MARK: - TypeElement
-struct TypeElement: Codable {
+struct TypeElement: Decodable {
     let type: TypeInfo
 }
 
-struct TypeInfo: Codable {
+struct TypeInfo: Decodable {
     let name: String
 }
+
+
+

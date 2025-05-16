@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  MainViewController.swift
 //  PokemonChallenge
 //
 //  Created by 김재우 on 5/13/25.
@@ -11,33 +11,77 @@ import RxCocoa
 import RxDataSources
 import SnapKit
 
-// final 키워드를 통해 더 이상 상속이 필요없음을 명시
 final class MainViewController: UIViewController {
     
-    // 타입에 별칭을 붙임 <각섹션을 구분하기 위한 식별자나 제목으로 사용, 실제 셀에 표현될 데이터 모델>
-    typealias Section = SectionModel<String, Result>
+    // MARK: - Typealiases
+    typealias Section = SectionModel<String, MainViewModel.PokemonItem>
     
+    // MARK: - Properties
     private let disposeBag = DisposeBag()
     private let viewModel = MainViewModel()
     
-    private let collectionView: UICollectionView = {
-        let layout = UICollectionViewCompositionalLayout { sectionIndex, _ in
+    private lazy var collectionView: UICollectionView = {
+        let layout = createCompositionalLayout()
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = .darkRed
+        collectionView.register(MainViewCell.self, forCellWithReuseIdentifier: MainViewCell.id)
+        collectionView.register(MainHeaderView.self,
+                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+                                withReuseIdentifier: MainHeaderView.id)
+        return collectionView
+    }()
+    
+    // MARK: - Lifecycle
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        configureUI()
+        bind()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: true)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: true)
+    }
+    
+    // MARK: - UI Setup
+    private func configureUI() {
+        view.backgroundColor = .mainRed
+        view.addSubview(collectionView)
+        
+        collectionView.snp.makeConstraints {
+            $0.edges.equalTo(view.safeAreaLayoutGuide.snp.edges)
+        }
+    }
+    
+    // MARK: - Compositional Layout
+    private func createCompositionalLayout() -> UICollectionViewCompositionalLayout {
+        // Section: Grid of 3 columns with header
+        return UICollectionViewCompositionalLayout { sectionIndex, _ in
+            // Item
             let itemSize = NSCollectionLayoutSize(
-                widthDimension: .fractionalWidth(1.0 / 3),  // 각 셀 너비 1/3
-                heightDimension: .fractionalHeight(1.0))         // 높이 고정
-            
+                widthDimension: .fractionalWidth(1.0 / 3),
+                heightDimension: .fractionalHeight(1.0)
+            )
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
             
+            // Group
             let groupSize = NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1.0),
-                heightDimension: .fractionalWidth(1.0 / 3))
+                heightDimension: .fractionalWidth(1.0 / 3)
+            )
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
             group.interItemSpacing = .fixed(8)
-            group.contentInsets = .init(top: 6, leading: 8, bottom: 6, trailing: 8)
-
+            group.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 8, bottom: 6, trailing: 8)
+            
+            // Section
             let section = NSCollectionLayoutSection(group: group)
             
-            // 헤더 뷰 등록
+            // Header
             let headerSize = NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1.0),
                 heightDimension: .absolute(100)
@@ -48,74 +92,54 @@ final class MainViewController: UIViewController {
                 alignment: .top
             )
             section.boundarySupplementaryItems = [header]
-            
             return section
         }
-        
-        return UICollectionView(frame: .zero, collectionViewLayout: layout)
-    }()
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        configureUI()
-        bind()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-            navigationController?.isNavigationBarHidden = true
-        }
-    
-    private func configureUI() {
-        view.backgroundColor = .mainRed
-        view.addSubview(collectionView)
-        
-        collectionView.backgroundColor = .darkRed
-        
-        collectionView.snp.makeConstraints {
-            $0.edges.equalTo(view.safeAreaLayoutGuide.snp.edges)
-        }
-        
-        collectionView.register(MainViewCell.self, forCellWithReuseIdentifier: MainViewCell.id)
-        collectionView.register(MainHeaderView.self,
-                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-                                withReuseIdentifier: MainHeaderView.id)
-    }
-    
+    // MARK: - Binding
     private func bind() {
+        // DataSource configuration
         let dataSource = RxCollectionViewSectionedReloadDataSource<Section>(
             configureCell: { _, collectionView, indexPath, item in
-                print(" 셀 구성 중 indexPath: \(indexPath.row)")
                 guard let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: MainViewCell.id, for: indexPath
                 ) as? MainViewCell else {
-                    print(" 셀 캐스팅 실패")
                     return UICollectionViewCell()
                 }
                 cell.configure(with: item)
                 return cell
             },
-            configureSupplementaryView: { dataSources, collectionView, kind, indexPath in
+            configureSupplementaryView: { _, collectionView, kind, indexPath in
                 guard kind == UICollectionView.elementKindSectionHeader,
-                      let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
-                                                                                   withReuseIdentifier: MainHeaderView.id,
-                                                                                   for: indexPath) as? MainHeaderView else {
+                      let header = collectionView.dequeueReusableSupplementaryView(
+                        ofKind: kind,
+                        withReuseIdentifier: MainHeaderView.id,
+                        for: indexPath
+                      ) as? MainHeaderView else {
                     return UICollectionReusableView()
                 }
                 return header
             }
         )
-        print("📌 바인딩 시작")
+        
+        // Bind pokemon list to collectionView
         viewModel.pokemonList
-            .map { items -> [Section] in
-                print("바인딩 전 아이템 수: \(items.count)")
-                return [Section(model: "Pokemon", items: items)]
-            }
+            .map { [Section(model: "Pokemon", items: $0)] }
             .bind(to: collectionView.rx.items(dataSource: dataSource))
+            .disposed(by: disposeBag)
+        
+        // Handle cell selection
+        collectionView.rx.modelSelected(MainViewModel.PokemonItem.self)
+            .subscribe(onNext: { [weak self] item in
+                guard let self = self else { return }
+                let detailVC = DetailViewController(pokemonID: item.id)
+                self.navigationController?.pushViewController(detailVC, animated: true)
+            })
             .disposed(by: disposeBag)
     }
 }
 
-// 사용한 컬러 hex 값.
+// MARK: - Custom Colors
 extension UIColor {
     static let mainRed = UIColor(red: 190/255, green: 30/255, blue: 40/255, alpha: 1.0)
     static let darkRed = UIColor(red: 120/255, green: 30/255, blue: 30/255, alpha: 1.0)
