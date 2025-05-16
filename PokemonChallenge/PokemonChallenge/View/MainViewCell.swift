@@ -51,7 +51,6 @@ class MainViewCell: UICollectionViewCell {
     private func loadImage(from urlString: String?, fallbackName: String) {
         guard let urlString = urlString,
               let url = URL(string: urlString) else {
-            print("이미지 URL 없음: \(fallbackName)")
             return
         }
 
@@ -60,7 +59,6 @@ class MainViewCell: UICollectionViewCell {
                   let data = data,
                   let image = UIImage(data: data),
                   error == nil else {
-                print("이미지 로딩 실패: \(fallbackName)")
                 return
             }
 

@@ -27,7 +27,6 @@ final class DetailViewModel {
     func fetchDetail(id: String) {
         let urlString = "https://pokeapi.co/api/v2/pokemon/\(id)"
         guard let url = URL(string: urlString) else {
-            print("❌ URL 생성 실패")
             return
         }
 
@@ -40,7 +39,6 @@ final class DetailViewModel {
 
                 guard let imageURLString = detail.sprites.other.officialArtwork.frontDefault,
                       let imageURL = URL(string: imageURLString) else {
-                    print("❌ 이미지 URL이 존재하지 않음")
                     self.pokemonImage.accept(nil)
                     return
                 }
@@ -48,7 +46,6 @@ final class DetailViewModel {
                 self.loadImage(from: imageURL)
 
             }, onFailure: { error in
-                print("❌ 포켓몬 디테일 로딩 실패: \(error)")
             })
             .disposed(by: disposeBag)
     }
@@ -75,7 +72,6 @@ final class DetailViewModel {
             if let data = data, let image = UIImage(data: data) {
                 self.pokemonImage.accept(image)
             } else {
-                print("이미지 다운로드 실패: \(error?.localizedDescription ?? "알 수 없음")")
                 self.pokemonImage.accept(nil)
             }
         }.resume()

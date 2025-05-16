@@ -32,7 +32,6 @@ final class MainViewModel {
         isLoading = true
 
         guard let url = URL(string: "https://pokeapi.co/api/v2/pokemon?limit=\(limit)&offset=\(offset)") else {
-            print("❌ 잘못된 URL")
             isLoading = false
             return
         }
@@ -47,7 +46,6 @@ final class MainViewModel {
                 self.pokemonList.accept(newList)
                 self.isLoading = false
             }, onFailure: { [weak self] error in
-                print("❌ 포켓몬 리스트 로딩 실패: \(error)")
                 self?.isLoading = false
             })
             .disposed(by: disposeBag)
