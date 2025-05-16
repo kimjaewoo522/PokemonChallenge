@@ -42,7 +42,7 @@ final class MainViewController: UIViewController {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: true)
     }
-
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         navigationController?.setNavigationBarHidden(false, animated: true)
@@ -134,6 +134,17 @@ final class MainViewController: UIViewController {
                 guard let self = self else { return }
                 let detailVC = DetailViewController(pokemonID: item.id)
                 self.navigationController?.pushViewController(detailVC, animated: true)
+            })
+            .disposed(by: disposeBag)
+        
+        collectionView.rx.contentOffset
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] offset in
+                guard let self = self else { return }
+                let threshold = collectionView.contentSize.height - collectionView.frame.size.height - 100
+                if collectionView.contentOffset.y > threshold {
+                    self.viewModel.fetchMorePokemon()
+                }
             })
             .disposed(by: disposeBag)
     }
