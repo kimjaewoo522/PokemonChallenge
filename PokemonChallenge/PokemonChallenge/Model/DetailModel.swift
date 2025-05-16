@@ -11,16 +11,16 @@ import Foundation
 struct Detail: Codable {
     let id: Int
     let name: String
-    let height: Int
-    let weight: Int
+    let height: Double
+    let weight: Double
     let types: [TypeElement]
 }
 
 // MARK: - TypeElement
 struct TypeElement: Codable {
-    let type: Species
+    let type: TypeInfo
 }
 
-struct Species: Codable {
+struct TypeInfo: Codable {
     let name: String
 }
