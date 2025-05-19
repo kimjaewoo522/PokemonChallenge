@@ -21,7 +21,7 @@
 		4C70C68E2DD3502A005D3C51 /* Exceptions for "PokemonChallenge" folder in "PokemonChallenge" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Resources/Info.plist,
 			);
 			target = 4C70C67B2DD35028005D3C51 /* PokemonChallenge */;
 		};
