@@ -20,35 +20,41 @@
 | **Kingfisher** | 포켓몬 이미지 로딩 및 캐싱 |
 | **PokeAPI** | [https://pokeapi.co](https://pokeapi.co) REST API 활용 |
 
-##  프로젝트 구조
+## 📁 프로젝트 구조: PokemonChallenge
 
-PokemonChallenge
-├── App
-│   └── AppDelegate.swift              # 앱의 시작 지점
+ ## 🗂️ 프로젝트 구조: PokemonChallenge
+
+```plaintext
+PokemonChallenge/
+├── PokemonChallenge/                     
 │
-├── Common
-│   └── NetworkManager.swift          # API 통신을 담당하는 싱글톤 클래스
+│   ├── App/                              
+│   │   └── AppDelegate.swift
 │
-├── Model
-│   ├── DetailModel.swift             # 포켓몬 상세 정보 모델
-│   ├── MainModel.swift               # 포켓몬 리스트(메인) 모델
-│   ├── PokemonKoreanName.swift       # 영어 이름 → 한글 이름 변환 매핑
-│   └── PokemonTypeName.swift         # 타입 영문명 → 한글명 변환 Enum
+│   ├── Common/                           
+│   │   └── NetworkManager.swift
 │
-├── ViewModel
-│   ├── MainViewModel.swift           # 포켓몬 리스트 MVVM 뷰모델
-│   └── DetailViewModel.swift         # 포켓몬 상세 화면 MVVM 뷰모델
+│   ├── Model/                            
+│   │   ├── DetailModel.swift
+│   │   ├── MainModel.swift
+│   │   ├── PokemonKoreanName.swift       
+│   │   └── PokemonTypeName.swift         
 │
-├── View
-│   ├── MainViewController.swift      # 메인 포켓몬 리스트 화면
-│   ├── MainViewCell.swift            # 포켓몬 셀
-│   ├── MainHeaderView.swift          # 리스트 헤더
-│   ├── DetailViewController.swift    # 포켓몬 상세 정보 화면
-│   └── LaunchScreen.storyboard       # 런치 스크린 설정
+│   ├── ViewModel/                       
+│   │   ├── MainViewModel.swift
+│   │   └── DetailViewModel.swift
 │
-├── Resources
-│   ├── Assets.xcassets               # 이미지 및 색상 리소스
-│   └── Info.plist                    # 앱의 설정 정보
+│   ├── View/                             
+│   │   ├── MainViewController.swift
+│   │   ├── MainViewCell.swift
+│   │   ├── MainHeaderView.swift
+│   │   ├── DetailViewController.swift
+│   │   └── LaunchScreen.storyboard       
+│
+│   ├── Resources/                        
+│   │   ├── Assets.xcassets
+│   │   └── Info.plist
+```
 
 
 ## 트러블슈팅
