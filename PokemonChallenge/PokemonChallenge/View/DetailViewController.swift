@@ -123,18 +123,30 @@ final class DetailViewController: UIViewController {
 
     // MARK: - 바인딩
     private func bind() {
-        viewModel.pokemonDetail
-            .compactMap { $0 }
-            .asDriver(onErrorDriveWith: .empty())
-            .drive(onNext: { [weak self] detail in
-                guard let self = self else { return }
+        viewModel.translatedId
+            .asDriver(onErrorJustReturn: nil)
+            .drive(noLabel.rx.text)
+            .disposed(by: disposeBag)
 
-                self.noLabel.text = "No.\(detail.id) \(detail.name.capitalized)"
-                self.nameLabel.text = ""
-                self.typeLabel.text = "타입: \(detail.koreanTypes.joined(separator: ", "))"
-                self.heightLabel.text = "키: \(Double(detail.height) / 10)m"
-                self.weightLabel.text = "몸무게: \(Double(detail.weight) / 10)kg"
-            })
+        viewModel.translatedName
+            .asDriver(onErrorJustReturn: nil)
+            .drive(nameLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        viewModel.koreanTypes
+            .asDriver(onErrorJustReturn: [])
+            .map { "타입: " + $0.joined(separator: ", ") }
+            .drive(typeLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        viewModel.translatedHeight
+            .asDriver(onErrorJustReturn: nil)
+            .drive(heightLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        viewModel.translatedWeight
+            .asDriver(onErrorJustReturn: nil)
+            .drive(weightLabel.rx.text)
             .disposed(by: disposeBag)
 
         viewModel.pokemonImage

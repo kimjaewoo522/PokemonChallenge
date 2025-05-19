@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class MainViewCell: UICollectionViewCell {
     
@@ -43,9 +44,9 @@ class MainViewCell: UICollectionViewCell {
         }
     }
         
-    func configure(with item: MainViewModel.PokemonItem) {
+    func configure(with item: Detail) {
         imageView.image = nil
-        loadImage(from: item.imageURL, fallbackName: item.name)
+        loadImage(from: item.sprites.other.officialArtwork.frontDefault, fallbackName: item.name)
     }
     
     private func loadImage(from urlString: String?, fallbackName: String) {

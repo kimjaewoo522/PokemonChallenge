@@ -1,69 +1,50 @@
-import Foundation
 import RxSwift
 import RxCocoa
 import UIKit
 
-struct TranslatedPokemonDetail {
-    let id: Int
-    let name: String
-    let height: Double
-    let weight: Double
-    let types: [TypeElement]
-    let koreanTypes: [String]
-}
-
 final class DetailViewModel {
 
-    let pokemonDetail = BehaviorRelay<TranslatedPokemonDetail?>(value: nil)
+    let detail = BehaviorRelay<Detail?>(value: nil)
     let pokemonImage = BehaviorRelay<UIImage?>(value: nil)
+
+    // 구독할 항목
+    let translatedId = BehaviorRelay<String?>(value: nil)
+    let translatedName = BehaviorRelay<String?>(value: nil)
+    let translatedHeight = BehaviorRelay<String?>(value: nil)
+    let translatedWeight = BehaviorRelay<String?>(value: nil)
+    let koreanTypes = BehaviorRelay<[String]>(value: [])
 
     private let disposeBag = DisposeBag()
 
-    /// 외부에서 호출하는 디테일 정보 로딩 메서드
-    func fetchAndTranslateDetail(id: String) {
-        fetchDetail(id: id)
-    }
-
     func fetchDetail(id: String) {
         let urlString = "https://pokeapi.co/api/v2/pokemon/\(id)"
-        guard let url = URL(string: urlString) else {
-            return
-        }
+        guard let url = URL(string: urlString) else { return }
 
         NetworkManager.shared.fetch(url: url)
             .subscribe(onSuccess: { [weak self] (detail: Detail) in
                 guard let self = self else { return }
+                self.detail.accept(detail)
 
-                let translated = self.translateDetail(detail)
-                self.pokemonDetail.accept(translated)
+                // 번역 후 각각의 Relay로 전달
+                self.translatedId.accept("No.\(detail.id)")
+                self.translatedName.accept(PokemonTranslator.getKoreanName(for: detail.name))
+                self.translatedHeight.accept("키: \(Double(detail.height) / 10)m")
+                self.translatedWeight.accept("몸무게: \(Double(detail.weight) / 10)kg")
+                self.koreanTypes.accept(
+                    detail.types.map { PokemonTypeName(rawValue: $0.type.name)?.displayName ?? $0.type.name }
+                )
 
-                guard let imageURLString = detail.sprites.other.officialArtwork.frontDefault,
-                      let imageURL = URL(string: imageURLString) else {
+                // 이미지 로딩
+                if let imageURLString = detail.sprites.other.officialArtwork.frontDefault,
+                   let imageURL = URL(string: imageURLString) {
+                    self.loadImage(from: imageURL)
+                } else {
                     self.pokemonImage.accept(nil)
-                    return
                 }
-
-                self.loadImage(from: imageURL)
 
             }, onFailure: { error in
             })
             .disposed(by: disposeBag)
-    }
-
-    private func translateDetail(_ detail: Detail) -> TranslatedPokemonDetail {
-        let translatedTypes = detail.types.map { typeElement in
-            PokemonTypeName(rawValue: typeElement.type.name)?.displayName ?? typeElement.type.name
-        }
-        let translatedName = PokemonTranslator.getKoreanName(for: detail.name)
-
-        return TranslatedPokemonDetail(
-            id: detail.id,
-            name: translatedName,
-            height: detail.height,
-            weight: detail.weight,
-            types: detail.types,
-            koreanTypes: translatedTypes
-        )
     }
 
     private func loadImage(from url: URL) {

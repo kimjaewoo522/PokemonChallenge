@@ -14,7 +14,7 @@ import SnapKit
 final class MainViewController: UIViewController {
     
     // MARK: - Typealiases
-    typealias Section = SectionModel<String, MainViewModel.PokemonItem>
+    typealias Section = SectionModel<String, Detail>
     
     // MARK: - Properties
     private let disposeBag = DisposeBag()
@@ -105,10 +105,10 @@ final class MainViewController: UIViewController {
             .bind(to: collectionView.rx.items(dataSource: dataSource))
             .disposed(by: disposeBag)
 
-        collectionView.rx.modelSelected(MainViewModel.PokemonItem.self)
+        collectionView.rx.modelSelected(Detail.self)
             .subscribe(onNext: { [weak self] item in
                 guard let self = self else { return }
-                let detailVC = DetailViewController(pokemonID: item.id)
+                let detailVC = DetailViewController(pokemonID: "\(item.id)")
                 self.navigationController?.pushViewController(detailVC, animated: true)
             })
             .disposed(by: disposeBag)

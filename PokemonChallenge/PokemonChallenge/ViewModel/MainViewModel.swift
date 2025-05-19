@@ -1,17 +1,10 @@
-import Foundation
 import RxSwift
 import RxCocoa
 import UIKit
 
 final class MainViewModel {
     
-    struct PokemonItem {
-        let id: String
-        let name: String
-        let imageURL: String?
-    }
-
-    let pokemonList = BehaviorRelay<[PokemonItem]>(value: [])
+    let pokemonList = BehaviorRelay<[Detail]>(value: [])
     private let disposeBag = DisposeBag()
 
     private var offset = 0
@@ -51,18 +44,14 @@ final class MainViewModel {
             .disposed(by: disposeBag)
     }
 
-    private func parsePokemonItems(from results: [Result]) -> Single<[PokemonItem]> {
-        let items = results.map { result -> Single<PokemonItem> in
+    private func parsePokemonItems(from results: [Result]) -> Single<[Detail]> {
+        let items = results.map { result -> Single<Detail> in
             guard let id = result.url.split(separator: "/").last else {
-                return .just(PokemonItem(id: "0", name: result.name, imageURL: nil))
+                return .just(Detail(id: 0, name: result.name, height: 0, weight: 0, types: [], sprites: Sprites(other: OtherSprites(officialArtwork: OfficialArtwork(frontDefault: nil)))))
             }
             let detailURL = self.makeDetailURL(for: String(id))
             return NetworkManager.shared.fetch(url: detailURL)
-                .map { (detail: Detail) -> PokemonItem in
-                    let imageURL = detail.sprites.other.officialArtwork.frontDefault
-                    return PokemonItem(id: String(detail.id), name: detail.name, imageURL: imageURL)
-                }
-                .catchAndReturn(PokemonItem(id: String(id), name: result.name, imageURL: nil))
+                .catchAndReturn(Detail(id: Int(id) ?? 0, name: result.name, height: 0, weight: 0, types: [], sprites: Sprites(other: OtherSprites(officialArtwork: OfficialArtwork(frontDefault: nil)))))
         }
         return Single.zip(items)
     }
