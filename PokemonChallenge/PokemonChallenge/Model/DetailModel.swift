@@ -1,5 +1,5 @@
 //
-//  DetailViewModel.swift
+//  DetailModel.swift
 //  PokemonChallenge
 //
 //  Created by 김재우 on 5/14/25.
